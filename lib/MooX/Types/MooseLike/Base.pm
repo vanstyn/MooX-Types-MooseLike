@@ -167,6 +167,22 @@ sub ref_type_definitions {
         },
     },
     {
+      name => 'HashRefKeys',
+      test => sub { defined $_[0] and ref($_[0]) eq 'HASH' },
+      message => sub { return exception_message($_[0], 'a HashRef') },
+      parameterizable => sub { keys %{ $_[0] } },
+      inflate => sub {
+        require Moose::Util::TypeConstraints;
+        if (my $params = shift) {
+          return Moose::Util::TypeConstraints::_create_parameterized_type_constraint(
+            Moose::Util::TypeConstraints::find_type_constraint('HashRef'),
+            inflate_type(@$params),
+          );
+        }
+        return Moose::Util::TypeConstraints::find_type_constraint('HashRef');
+        },
+    },
+    {
       name => 'CodeRef',
       test => sub { defined $_[0] and ref($_[0]) eq 'CODE' },
       message => sub { return exception_message($_[0], 'a CodeRef') },

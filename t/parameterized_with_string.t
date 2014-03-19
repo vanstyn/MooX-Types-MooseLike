@@ -35,7 +35,7 @@
   use warnings FATAL => 'all';
   use Moo;
   use MooX::Types::MooseLike::Base qw/
-    InstanceOf ConsumerOf HasMethods Enum
+    InstanceOf ConsumerOf HasMethods Enum HashRefKeys
     /;
   with (
     'MooX::Types::MooseLike::Test::Role',
@@ -68,6 +68,10 @@
   has enum_type => (
     is  => 'ro',
     isa => Enum['estrella', 'lluna', 'deessa'],
+    );
+  has hashrefkeys_enum => (
+    is  => 'ro',
+    isa => HashRefKeys[Enum['estrella', 'lluna', 'deessa']],
     );
 }
 package main;
@@ -201,5 +205,33 @@ like(
   qr/is not any of the possible values/,
   'a different string is not one of the enumerated values'
   );
+
+# HashRefKeys[Enum]
+ok(
+  MooX::Types::MooseLike::Test->new(hashrefkeys_enum_type => {estrella=>1} ), 
+  'has one of the possible keys (HashRefKeys[Enum[...]])'
+);
+ok(
+  MooX::Types::MooseLike::Test->new(hashrefkeys_enum_type => {deessa=>1} ), 
+  'has one of the possible keys (HashRefKeys[Enum[...]])'
+);
+$false_enum = { '' => 1 };
+like(
+  exception {
+    MooX::Types::MooseLike::Test->new(hashrefkeys_enum_type => $false_enum);
+  },
+  qr/is not any of the possible values/,
+  'an empty string is not one of the enumerated keys'
+  );
+$false_enum = { estrella => 1, 'Tot es possible' => 'deessa' };
+like(
+  exception {
+    MooX::Types::MooseLike::Test->new(hashrefkeys_enum_type => $false_enum);
+  },
+  qr/is not any of the possible values/,
+  'a different string is not one of the enumerated keys'
+  );
+
+
 
 done_testing;

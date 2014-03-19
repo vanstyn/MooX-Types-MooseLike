@@ -6,10 +6,11 @@ use Test::Fatal;
 eval q{
 	package Local::TestClass;
 	use Moo;
-	use MooX::Types::MooseLike::Base qw( Enum AnyOf Str ArrayRef ScalarRef HashRef HasMethods );
+	use MooX::Types::MooseLike::Base qw( Enum AnyOf Str ArrayRef ScalarRef HashRef HasMethods HashRefKeys );
 	has chipmunk => (is => 'ro', isa => Enum[qw(Alvin Simon Theodore)]);
 	has songs    => (is => 'ro', isa => AnyOf[ Str, ArrayRef[Str] ]);
 	has complex  => (is => 'ro', isa => HashRef[ArrayRef[ScalarRef[HasMethods[qw/foo bar/]]]]);
+	has chpmnk_k => (is => 'ro', isa => HashRefKeys[Enum[qw(Alvin Simon Theodore)]]);
 	1;
 } or die $@;
 
@@ -88,5 +89,23 @@ is_deeply(
   [sort qw/foo bar/],
   'duck type has correct methods'
   );
+
+my $tc4 = do {
+  $SIG{__WARN__} = sub { 0 };
+  Local::TestClass->meta->get_attribute('chpmnk_k')->type_constraint;
+  };
+
+is(
+  $tc4->name,
+  'HashRef[__ANON__]',
+  'HashRefKeys type constraint correctly inflated',
+  );
+
+is_deeply(
+  $tc4->type_parameter->values, 
+  [qw/Alvin Simon Theodore/], 
+  '$tc4->type_parameter->values'
+);
+
 
 done_testing;
